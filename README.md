@@ -1,30 +1,29 @@
-# ChatAI — AI Chat Widget
+# Chat Widget — Frontend Prototype
 
-A premium multi-page product landing site showcasing an embeddable AI chat widget. Built as a portfolio project demonstrating interactive UI, product design, and clean JavaScript.
+A premium dark-themed chat widget frontend prototype. Built as a portfolio project demonstrating interactive UI components and clean JavaScript.
 
 ## Live Demo
-[View on Vercel →](https://chatai-widget.vercel.app)
+[View on Vercel →](https://chatai-rho-bice.vercel.app)
 
-## Pages
-- **Home** — Hero with live widget preview, feature highlights, CTA
-- **Features** — Detailed feature breakdown with visuals
-- **Pricing** — Pricing plans with comparison
-- **Contact** — Contact form
+## What it does
+A fully interactive chat widget that can be embedded on any business website. This is a frontend prototype — no real AI, responses are demo only.
 
 ## Features
-- Fully interactive chat widget demo
-- Open/close animation with spring physics
-- Quick reply buttons
-- Typing indicator with realistic delay
+- Open/close with spring animation
+- Icon morphs between chat and ✕
+- Quick reply buttons (disappear after use)
+- Typing indicator with realistic random delay
 - Keyword-based mock responses
 - Unread badge on trigger button
-- Responsive — full-width on mobile
-- Font Awesome icons
+- Message timestamps
+- Enter to send, Escape to close
+- Mobile responsive
 
 ## Tech Stack
 - HTML5
 - CSS3 (custom properties, CSS Grid, Flexbox)
 - Vanilla JavaScript
+- Font Awesome icons
 
 ## Deploy to Vercel
 1. Push to GitHub
@@ -34,14 +33,8 @@ A premium multi-page product landing site showcasing an embeddable AI chat widge
 
 ## Project Structure
 ```
-chatai/
-  index.html      — Home page
-  features.html   — Features page
-  pricing.html    — Pricing page
-  contact.html    — Contact page
-  style.css       — Shared styles
-  widget.js       — Shared chat widget logic
+chat-widget-prototype.html   — Single file, everything included
 ```
 
 ---
-Built by Nikita Danilov · [Portfolio](https://github.com/yourusername)
+Built by Nikita Danilov · [GitHub](https://github.com/niki-deone)
