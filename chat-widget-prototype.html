@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat Widget — Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --bg:       #0B0B0F;
+  --surface:  #111116;
+  --surface2: #18181F;
+  --surface3: #1F1F28;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.04);
+  --text:     #EEEDF2;
+  --text2:    #A09FB8;
+  --text3:    #5E5D72;
+  --accent:   #7C6FFF;
+  --accent2:  #A99BFF;
+  --accent-glow: rgba(124,111,255,0.25);
+  --green:    #34D399;
+  --red:      #F87171;
+  --r-sm:     10px;
+  --r-md:     16px;
+  --r-lg:     22px;
+  --r-xl:     28px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── NOISE TEXTURE ─────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  background-repeat: repeat; background-size: 200px 200px; opacity: 0.5;
+}
+
+/* ─── AMBIENT GLOW ──────────────────────── */
+.glow-top {
+  position: fixed; top: -180px; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 360px;
+  background: radial-gradient(ellipse, rgba(124,111,255,0.12) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ─── PAGE ──────────────────────────────── */
+.page {
+  position: relative; z-index: 1;
+  max-width: 780px; margin: 0 auto;
+  padding: 5rem 2rem 10rem;
+}
+
+/* ─── HEADER ────────────────────────────── */
+.page-header { margin-bottom: 3.5rem; }
+.tag {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid rgba(124,111,255,0.3);
+  background: rgba(124,111,255,0.08);
+  border-radius: 100px; padding: 5px 14px;
+  font-size: 11.5px; font-weight: 500;
+  letter-spacing: 0.02em; color: var(--accent2);
+  margin-bottom: 1.25rem;
+}
+.tag i { font-size: 10px; }
+h1 {
+  font-size: clamp(1.9rem, 4vw, 2.75rem);
+  font-weight: 600; letter-spacing: -0.04em;
+  line-height: 1.12; margin-bottom: 0.9rem;
+  background: linear-gradient(160deg, var(--text) 0%, rgba(160,159,184,0.7) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.sub {
+  font-size: 0.975rem; color: var(--text2);
+  line-height: 1.75; max-width: 500px; font-weight: 400;
+}
+
+/* ─── DIVIDER ───────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border), transparent);
+  margin: 2.5rem 0;
+}
+
+/* ─── FEATURE GRID ──────────────────────── */
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px; margin-bottom: 2.5rem;
+}
+.feat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 1.25rem 1.375rem;
+  transition: border-color 0.25s, transform 0.25s;
+}
+.feat:hover { border-color: rgba(124,111,255,0.25); transform: translateY(-2px); }
+.feat-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(124,111,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent2); font-size: 13px; margin-bottom: 0.7rem;
+}
+.feat h3 { font-size: 0.84rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text); }
+.feat p { font-size: 0.78rem; color: var(--text2); line-height: 1.6; }
+
+/* ─── CHECKLIST ─────────────────────────── */
+.checklist {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1.75rem;
+}
+.checklist-title {
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text3); margin-bottom: 1.25rem;
+}
+.cl-items { display: flex; flex-direction: column; gap: 0.55rem; }
+.cl-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  font-size: 0.835rem; color: var(--text2);
+}
+.cl-item .ic { font-size: 11px; width: 16px; flex-shrink: 0; }
+.cl-item .ic.yes { color: var(--green); }
+.cl-item .ic.no  { color: var(--red); }
+.cl-item.dim { opacity: 0.55; }
+
+/* ─── TRIGGER BUTTON ────────────────────── */
+#triggerBtn {
+  position: fixed; bottom: 28px; right: 28px; z-index: 1000;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #A38BFF);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 20px var(--accent-glow);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
+}
+#triggerBtn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 6px 28px rgba(124,111,255,0.4);
+}
+#triggerBtn.open { background: var(--surface2); box-shadow: 0 0 0 1px var(--border), 0 4px 16px rgba(0,0,0,0.4); }
+.t-icon, .t-close {
+  position: absolute; font-size: 1.2rem; color: #fff;
+  transition: opacity 0.2s, transform 0.22s;
+}
+.t-icon  { opacity: 1; transform: scale(1) rotate(0deg); }
+.t-close { opacity: 0; transform: scale(0.5) rotate(-90deg); }
+#triggerBtn.open .t-icon  { opacity: 0; transform: scale(0.5) rotate(90deg); }
+#triggerBtn.open .t-close { opacity: 1; transform: scale(1) rotate(0deg); }
+.t-close { color: var(--text2); }
+
+.badge {
+  position: absolute; top: -3px; right: -3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #EF4444; border: 2px solid var(--bg);
+  font-size: 9px; font-weight: 700; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.badge.gone { opacity: 0; transform: scale(0); pointer-events: none; }
+
+/* ─── WIDGET WINDOW ─────────────────────── */
+#widgetWin {
+  position: fixed; bottom: 96px; right: 28px;
+  width: 360px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,111,255,0.08), inset 0 1px 0 rgba(255,255,255,0.04);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  transform-origin: bottom right;
+  transform: scale(0.86) translateY(18px);
+  opacity: 0; pointer-events: none;
+  transition: transform 0.32s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s ease;
+  z-index: 999;
+  max-height: calc(100svh - 120px);
+}
+#widgetWin::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(to right, var(--accent), #C4B5FD);
+  z-index: 2;
+}
+#widgetWin.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+
+/* Header */
+.wh {
+  padding: 1rem 1.125rem 0.9rem;
+  display: flex; align-items: center; gap: 0.75rem;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+.wh-av {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #A38BFF);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem; color: #fff; flex-shrink: 0; position: relative;
+}
+.wh-dot {
+  position: absolute; bottom: 1px; right: 1px;
+  width: 9px; height: 9px; background: var(--green);
+  border-radius: 50%; border: 2px solid var(--surface2);
+}
+.wh-info { flex: 1; }
+.wh-info h3 { font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 1px; }
+.wh-info p {
+  font-size: 0.68rem; color: var(--green);
+  display: flex; align-items: center; gap: 5px; font-weight: 400;
+}
+.wh-info p::before {
+  content: ''; width: 5px; height: 5px;
+  background: var(--green); border-radius: 50%;
+  animation: onlinePulse 2s ease-in-out infinite;
+}
+@keyframes onlinePulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.wh-min {
+  width: 26px; height: 26px; border-radius: 7px;
+  background: none; border: 1px solid var(--border);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--text3); font-size: 0.72rem;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.wh-min:hover { background: var(--surface3); border-color: rgba(255,255,255,0.1); color: var(--text2); }
+
+/* Messages */
+.wm {
+  flex: 1; overflow-y: auto; padding: 1rem 0.9rem;
+  display: flex; flex-direction: column; gap: 9px;
+  background: var(--bg);
+  min-height: 260px; max-height: 320px;
+  scrollbar-width: thin; scrollbar-color: var(--surface3) transparent;
+}
+.wm::-webkit-scrollbar { width: 3px; }
+.wm::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
+
+.msg { display: flex; flex-direction: column; max-width: 82%; animation: fadeUp 0.22s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.msg.bot  { align-self: flex-start; }
+.msg.user { align-self: flex-end; }
+.msg-bub {
+  padding: 8px 12px; border-radius: 15px;
+  font-size: 0.835rem; line-height: 1.55; word-break: break-word;
+}
+.msg.bot  .msg-bub { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
+.msg.user .msg-bub { background: linear-gradient(135deg, var(--accent), #8B80FF); color: #fff; border-bottom-right-radius: 4px; }
+.msg-time { font-size: 0.61rem; color: var(--text3); margin-top: 3px; }
+.msg.user .msg-time { text-align: right; }
+
+/* Typing */
+.typing-wrap { align-self: flex-start; animation: fadeUp 0.2s ease; }
+.typing-bub {
+  display: flex; align-items: center; gap: 4px;
+  padding: 9px 13px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 15px; border-bottom-left-radius: 4px;
+}
+.typing-bub span {
+  width: 5px; height: 5px; background: var(--text3);
+  border-radius: 50%; animation: typeBounce 1.3s ease-in-out infinite;
+}
+.typing-bub span:nth-child(2) { animation-delay: 0.18s; }
+.typing-bub span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes typeBounce { 0%,60%,100%{transform:translateY(0);opacity:.35} 30%{transform:translateY(-5px);opacity:1} }
+
+/* Quick replies */
+.wq {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 0.6rem 0.9rem;
+  border-top: 1px solid var(--border2);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.qr {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 100px; padding: 5px 11px;
+  font-size: 0.75rem; color: var(--text2); cursor: pointer;
+  font-family: inherit; white-space: nowrap;
+  transition: all 0.15s;
+}
+.qr:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.qr:active { transform: scale(0.95); }
+
+/* Input */
+.wi {
+  padding: 0.7rem 0.875rem;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.wi-in {
+  flex: 1; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 100px;
+  padding: 8px 14px; font-size: 0.82rem;
+  color: var(--text); font-family: inherit; outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.wi-in::placeholder { color: var(--text3); }
+.wi-in:focus { border-color: rgba(124,111,255,0.45); background: var(--surface3); }
+.wi-send {
+  width: 33px; height: 33px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #9B8EFF);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 0.78rem; flex-shrink: 0;
+  transition: transform 0.15s, opacity 0.15s;
+  box-shadow: 0 2px 10px var(--accent-glow);
+}
+.wi-send:hover { transform: scale(1.1); }
+.wi-send:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+/* ─── RESPONSIVE ────────────────────────── */
+@media (max-width: 540px) {
+  .page { padding: 3.5rem 1.25rem 9rem; }
+  h1 { font-size: 1.65rem; }
+  .grid-4 { grid-template-columns: 1fr; }
+  #widgetWin { width: calc(100vw - 2rem); right: 1rem; bottom: 88px; border-radius: var(--r-lg); }
+  #triggerBtn { bottom: 20px; right: 20px; }
+}
+</style>
+</head>
+<body>
+
+<div class="glow-top"></div>
+
+<div class="page">
+  <div class="page-header">
+    <div class="tag"><i class="fa-solid fa-code"></i> Frontend Prototype</div>
+    <h1>Chat Widget<br>Demo</h1>
+    <p class="sub">An honest frontend prototype — no fake AI. Real widget interactions: open/close, quick replies, typing indicator, and smart mock responses. Hit the button in the corner.</p>
+  </div>
+
+  <div class="grid-4">
+    <div class="feat">
+      <div class="feat-icon"><i class="fa-solid fa-toggle-on"></i></div>
+      <h3>Open / Close</h3>
+      <p>Spring animation on trigger. Icon morphs between chat and ✕ smoothly.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon"><i class="fa-solid fa-bolt"></i></div>
+      <h3>Quick replies</h3>
+      <p>Pre-set buttons for common questions. Hidden after first interaction.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon"><i class="fa-regular fa-circle-dot"></i></div>
+      <h3>Typing indicator</h3>
+      <p>Animated dots with randomised delay — feels natural, not robotic.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon"><i class="fa-solid fa-mobile-screen"></i></div>
+      <h3>Responsive</h3>
+      <p>Full-width on mobile. Adapts layout on any screen size.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="checklist">
+    <div class="checklist-title">What's included</div>
+    <div class="cl-items">
+      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Open / close with spring animation</div>
+      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Icon morphs between states</div>
+      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Quick replies (disappear after use)</div>
+      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Typing indicator with random delay</div>
+      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Keyword-based mock responses</div>
+      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Unread badge on trigger</div>
+      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Timestamps on every message</div>
+      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Enter to send, Escape to close</div>
+      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Mobile responsive</div>
+      <div class="cl-item dim"><i class="fa-solid fa-xmark ic no"></i>No real AI — responses are demo only</div>
+    </div>
+  </div>
+</div>
+
+<!-- TRIGGER -->
+<button id="triggerBtn" onclick="toggleWidget()" aria-label="Toggle chat">
+  <div class="badge" id="badge">1</div>
+  <i class="fa-solid fa-comment-dots t-icon"></i>
+  <i class="fa-solid fa-xmark t-close"></i>
+</button>
+
+<!-- WIDGET -->
+<div id="widgetWin" role="dialog" aria-label="Chat widget">
+  <div class="wh">
+    <div class="wh-av">
+      <i class="fa-solid fa-headset"></i>
+      <div class="wh-dot"></div>
+    </div>
+    <div class="wh-info">
+      <h3>Support</h3>
+      <p>Online · replies in seconds</p>
+    </div>
+    <button class="wh-min" onclick="toggleWidget()" aria-label="Minimise">
+      <i class="fa-solid fa-minus"></i>
+    </button>
+  </div>
+
+  <div class="wm" id="msgs">
+    <div class="msg bot">
+      <div class="msg-bub">Hi there 👋 How can I help you today?</div>
+      <div class="msg-time">Just now</div>
+    </div>
+  </div>
+
+  <div class="wq" id="qrWrap">
+    <button class="qr" onclick="sendQuick('What services do you offer?')">Services</button>
+    <button class="qr" onclick="sendQuick('How much does it cost?')">Pricing</button>
+    <button class="qr" onclick="sendQuick('How do I get started?')">Get started</button>
+    <button class="qr" onclick="sendQuick('Do you offer support?')">Support</button>
+  </div>
+
+  <div class="wi">
+    <input class="wi-in" id="inp" type="text" placeholder="Type a message…" onkeydown="onKey(event)" autocomplete="off" maxlength="300">
+    <button class="wi-send" id="sendBtn" onclick="sendMsg()" aria-label="Send">
+      <i class="fa-solid fa-paper-plane"></i>
+    </button>
+  </div>
+</div>
+
+<script>
+const RESP = [
+  { k:['service','offer','what do','what can'],  r:"We build custom websites, landing pages, web apps, and chat widgets like this one. Everything from scratch — no templates. Interested in something specific?" },
+  { k:['cost','price','pricing','how much','€','$','plan'], r:"A landing page starts from €150, a full website from €350, a custom web app from €500+. We always do a free estimate first. Want one?" },
+  { k:['start','begin','get started','hire','order'], r:"Easy — describe what you need or share your website URL, and we'll send a plan + price within 24 hours. No commitment required." },
+  { k:['support','help','issue','problem','bug','fix'], r:"All projects come with 30 days of free support after delivery. After that we have affordable monthly plans. What do you need help with?" },
+  { k:['time','long','deadline','fast','quick','delivery'], r:"Landing pages: 2–4 days. Full websites: 5–10 days. Web apps: 2–4 weeks. We give you an exact estimate before starting." },
+  { k:['hello','hi ','hey','morning','afternoon'], r:"Hey! Nice to meet you 😊 What are you looking to build?" },
+  { k:['thank','thanks','great','perfect','awesome','cool'], r:"Happy to help! Anything else you'd like to know?" },
+];
+const FALLBACK = "This is a demo — in a real setup I'd be trained on your business info and FAQs. Try asking about services, pricing, timeline, or support 👍";
+
+let busy = false, open = false;
+
+function now() { return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+function scroll() { const el=document.getElementById('msgs'); el.scrollTop=el.scrollHeight; }
+
+function addMsg(text, role) {
+  const w=document.getElementById('msgs');
+  const d=document.createElement('div'); d.className=`msg ${role}`;
+  d.innerHTML=`<div class="msg-bub">${text}</div><div class="msg-time">${now()}</div>`;
+  w.appendChild(d); scroll();
+}
+
+function showTyping() {
+  const w=document.getElementById('msgs');
+  const d=document.createElement('div'); d.className='typing-wrap'; d.id='typer';
+  d.innerHTML='<div class="typing-bub"><span></span><span></span><span></span></div>';
+  w.appendChild(d); scroll();
+}
+function hideTyping() { document.getElementById('typer')?.remove(); }
+
+function getReply(t) {
+  const low=t.toLowerCase();
+  for(const r of RESP) if(r.k.some(k=>low.includes(k))) return r.r;
+  return FALLBACK;
+}
+
+function deliver(userText) {
+  busy=true; document.getElementById('sendBtn').disabled=true;
+  setTimeout(()=>{
+    showTyping();
+    setTimeout(()=>{
+      hideTyping(); addMsg(getReply(userText),'bot');
+      busy=false; document.getElementById('sendBtn').disabled=false;
+      document.getElementById('inp').focus();
+    }, 850+Math.random()*600);
+  }, 600+Math.random()*500);
+}
+
+function sendMsg() {
+  if(busy) return;
+  const inp=document.getElementById('inp'); const t=inp.value.trim(); if(!t) return;
+  inp.value=''; hideQR(); addMsg(t,'user'); deliver(t);
+}
+function sendQuick(t) { if(busy) return; hideQR(); addMsg(t,'user'); deliver(t); }
+function hideQR() { document.getElementById('qrWrap').style.display='none'; }
+function onKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} }
+
+function toggleWidget() {
+  open=!open;
+  document.getElementById('triggerBtn').classList.toggle('open',open);
+  document.getElementById('widgetWin').classList.toggle('open',open);
+  document.getElementById('badge').classList.add('gone');
+  if(open) setTimeout(()=>document.getElementById('inp').focus(),350);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&open)toggleWidget();});
+</script>
+</body>
+</html>
