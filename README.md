@@ -1,40 +1,31 @@
-# Chat Widget — Frontend Prototype
+# AI Chat Widget — Live Demo
 
-A premium dark-themed chat widget frontend prototype. Built as a portfolio project demonstrating interactive UI components and clean JavaScript.
+One chat widget, three businesses, two languages. The demo page pretends to be a real small-business website — a plumbing company, a dental practice, an Italian restaurant — and the top bar switches the entire site and widget persona live: colors, typography, content, bot name, quick replies, and answers. An EN/DE toggle localizes everything, including the bot's keyword matching.
 
-## Live Demo
-[View on Vercel →](https://chatai-rho-bice.vercel.app)
+**Live demo:** https://chatai-rho-bice.vercel.app
 
-## What it does
-A fully interactive chat widget that can be embedded on any business website. This is a frontend prototype — no real AI, responses are demo only.
+## Why it's built this way
+
+A chat widget sells best in context. Instead of a feature checklist, the demo shows the widget doing its job on a believable website, for the exact kind of local business it's made for. Switching themes and languages demonstrates the real selling points: one widget, fully configurable per business, i18n-ready.
 
 ## Features
-- Open/close with spring animation
-- Icon morphs between chat and ✕
-- Quick reply buttons (disappear after use)
-- Typing indicator with realistic random delay
-- Keyword-based mock responses
-- Unread badge on trigger button
-- Message timestamps
-- Enter to send, Escape to close
-- Mobile responsive
 
-## Tech Stack
-- HTML5
-- CSS3 (custom properties, CSS Grid, Flexbox)
-- Vanilla JavaScript
-- Font Awesome icons
+- Three complete business personas (content, palette, typography, bot behavior) driven by a single config object
+- Full EN/DE localization — page content, UI strings, bot responses, and per-language keyword triggers
+- Keyword-based demo responses per business, honest fallback message
+- Typing indicator with randomized delay, quick replies, unread badge, timestamps
+- Enter to send, Escape to close, focus management
+- Responsive down to mobile, `prefers-reduced-motion` respected
+- Zero dependencies: one HTML file, vanilla JS, no icon fonts (inline SVG)
 
-## Deploy to Vercel
-1. Push to GitHub
-2. Import repo on [vercel.com](https://vercel.com)
-3. Framework: **Other** (static site)
-4. Deploy ✅
+## Honesty note
 
-## Project Structure
-```
-chat-widget-prototype.html   — Single file, everything included
-```
+Demo responses are predefined. The production version connects the same frontend to an AI model (e.g. Claude API via a serverless endpoint) loaded with the business's real FAQ and data.
+
+## Deploy
+
+Static site — push to GitHub, import on Vercel, framework "Other", deploy.
 
 ---
+
 Built by Nikita Danilov · [GitHub](https://github.com/niki-deone)

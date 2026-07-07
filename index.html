@@ -1,503 +1,763 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de" data-theme="handwerk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chat Widget — Prototype</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<title>AI Chat Widget — Live Demo on Three Example Sites</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
 <style>
+/* ============================================================
+   Chat Widget Demo — one widget, three businesses, two languages.
+   The page pretends to be a real SMB website; the demo bar on
+   top switches the whole site + widget persona + language live.
+   ============================================================ */
+
 :root {
-  --bg:       #0B0B0F;
-  --surface:  #111116;
-  --surface2: #18181F;
-  --surface3: #1F1F28;
-  --border:   rgba(255,255,255,0.07);
-  --border2:  rgba(255,255,255,0.04);
-  --text:     #EEEDF2;
-  --text2:    #A09FB8;
-  --text3:    #5E5D72;
-  --accent:   #7C6FFF;
-  --accent2:  #A99BFF;
-  --accent-glow: rgba(124,111,255,0.25);
-  --green:    #34D399;
-  --red:      #F87171;
-  --r-sm:     10px;
-  --r-md:     16px;
-  --r-lg:     22px;
-  --r-xl:     28px;
+  --font: 'Manrope', -apple-system, sans-serif;
+  --font-display: 'Manrope', sans-serif;
+  --demo-bg: #16161A;
+  --demo-text: #B9B7C4;
+  --radius: 10px;
+}
+
+/* ── themes ─────────────────────────────────────────────── */
+[data-theme="handwerk"] {
+  --accent: #1C4E80;
+  --accent-dark: #143A61;
+  --accent-soft: #E8EFF6;
+  --bg: #F7F8F9;
+  --panel: #FFFFFF;
+  --ink: #1B222B;
+  --ink2: #5A6472;
+  --line: #E2E6EB;
+  --hero-bg: linear-gradient(135deg, #143A61 0%, #1C4E80 100%);
+  --hero-ink: #F2F6FB;
+  --font-display: 'Manrope', sans-serif;
+  --display-weight: 800;
+  --display-spacing: -0.03em;
+  --radius: 8px;
+}
+[data-theme="praxis"] {
+  --accent: #0E7C6B;
+  --accent-dark: #0A5F52;
+  --accent-soft: #E6F4F1;
+  --bg: #FBFDFC;
+  --panel: #FFFFFF;
+  --ink: #1E2A28;
+  --ink2: #5E706C;
+  --line: #E1EAE7;
+  --hero-bg: linear-gradient(135deg, #E6F4F1 0%, #F3FAF8 100%);
+  --hero-ink: #1E2A28;
+  --font-display: 'Manrope', sans-serif;
+  --display-weight: 700;
+  --display-spacing: -0.02em;
+  --radius: 14px;
+}
+[data-theme="ristorante"] {
+  --accent: #8C3B2E;
+  --accent-dark: #6E2D23;
+  --accent-soft: #F6EAE2;
+  --bg: #FBF6EE;
+  --panel: #FFFDF8;
+  --ink: #2E241C;
+  --ink2: #6E6154;
+  --line: #E9DFD0;
+  --hero-bg: linear-gradient(135deg, #2E241C 0%, #4A382B 100%);
+  --hero-ink: #F6EFE3;
+  --font-display: 'Fraunces', serif;
+  --display-weight: 700;
+  --display-spacing: 0;
+  --radius: 4px;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { height: 100%; }
+html { height: 100%; scroll-behavior: smooth; }
 body {
-  font-family: 'Inter', -apple-system, sans-serif;
-  background: var(--bg); color: var(--text);
-  min-height: 100vh; overflow-x: hidden;
+  font-family: var(--font);
+  background: var(--bg); color: var(--ink);
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  transition: background 0.35s;
+}
+button { font-family: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 
-/* ─── NOISE TEXTURE ─────────────────────── */
-body::before {
-  content: '';
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  background-repeat: repeat; background-size: 200px 200px; opacity: 0.5;
-}
-
-/* ─── AMBIENT GLOW ──────────────────────── */
-.glow-top {
-  position: fixed; top: -180px; left: 50%; transform: translateX(-50%);
-  width: 600px; height: 360px;
-  background: radial-gradient(ellipse, rgba(124,111,255,0.12) 0%, transparent 70%);
-  pointer-events: none; z-index: 0;
-}
-
-/* ─── PAGE ──────────────────────────────── */
-.page {
-  position: relative; z-index: 1;
-  max-width: 780px; margin: 0 auto;
-  padding: 5rem 2rem 10rem;
-}
-
-/* ─── HEADER ────────────────────────────── */
-.page-header { margin-bottom: 3.5rem; }
-.tag {
-  display: inline-flex; align-items: center; gap: 7px;
-  border: 1px solid rgba(124,111,255,0.3);
-  background: rgba(124,111,255,0.08);
-  border-radius: 100px; padding: 5px 14px;
-  font-size: 11.5px; font-weight: 500;
-  letter-spacing: 0.02em; color: var(--accent2);
-  margin-bottom: 1.25rem;
-}
-.tag i { font-size: 10px; }
-h1 {
-  font-size: clamp(1.9rem, 4vw, 2.75rem);
-  font-weight: 600; letter-spacing: -0.04em;
-  line-height: 1.12; margin-bottom: 0.9rem;
-  background: linear-gradient(160deg, var(--text) 0%, rgba(160,159,184,0.7) 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.sub {
-  font-size: 0.975rem; color: var(--text2);
-  line-height: 1.75; max-width: 500px; font-weight: 400;
-}
-
-/* ─── DIVIDER ───────────────────────────── */
-.divider {
-  height: 1px;
-  background: linear-gradient(to right, transparent, var(--border), transparent);
-  margin: 2.5rem 0;
-}
-
-/* ─── FEATURE GRID ──────────────────────── */
-.grid-4 {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px; margin-bottom: 2.5rem;
-}
-.feat {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 1.25rem 1.375rem;
-  transition: border-color 0.25s, transform 0.25s;
-}
-.feat:hover { border-color: rgba(124,111,255,0.25); transform: translateY(-2px); }
-.feat-icon {
-  width: 32px; height: 32px; border-radius: 8px;
-  background: rgba(124,111,255,0.1);
+/* ── demo control bar ───────────────────────────────────── */
+.demobar {
+  position: sticky; top: 0; z-index: 500;
+  background: var(--demo-bg); color: var(--demo-text);
   display: flex; align-items: center; justify-content: center;
-  color: var(--accent2); font-size: 13px; margin-bottom: 0.7rem;
+  flex-wrap: wrap; gap: 8px 14px; padding: 9px 16px;
+  font-size: 12.5px;
 }
-.feat h3 { font-size: 0.84rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--text); }
-.feat p { font-size: 0.78rem; color: var(--text2); line-height: 1.6; }
+.demobar-label { font-weight: 600; letter-spacing: 0.02em; }
+.demobar-tabs { display: flex; gap: 5px; }
+.demo-tab {
+  background: transparent; color: var(--demo-text);
+  border: 1px solid #33333B; border-radius: 100px;
+  padding: 5px 14px; font-size: 12px; font-weight: 600;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.demo-tab:hover { border-color: #55555F; color: #fff; }
+.demo-tab.active { background: #fff; color: #16161A; border-color: #fff; }
+.lang-tabs { display: flex; gap: 4px; }
+.lang-tab {
+  background: transparent; color: var(--demo-text);
+  border: 1px solid #33333B; border-radius: 6px;
+  padding: 5px 10px; font-size: 11.5px; font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.lang-tab:hover { border-color: #55555F; color: #fff; }
+.lang-tab.active { background: #fff; color: #16161A; border-color: #fff; }
+.demobar a { color: var(--demo-text); text-decoration: underline; text-underline-offset: 2px; }
+.demobar a:hover { color: #fff; }
 
-/* ─── CHECKLIST ─────────────────────────── */
-.checklist {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 1.75rem;
-}
-.checklist-title {
-  font-size: 11px; font-weight: 600;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--text3); margin-bottom: 1.25rem;
-}
-.cl-items { display: flex; flex-direction: column; gap: 0.55rem; }
-.cl-item {
-  display: flex; align-items: center; gap: 0.75rem;
-  font-size: 0.835rem; color: var(--text2);
-}
-.cl-item .ic { font-size: 11px; width: 16px; flex-shrink: 0; }
-.cl-item .ic.yes { color: var(--green); }
-.cl-item .ic.no  { color: var(--red); }
-.cl-item.dim { opacity: 0.55; }
+/* ── fake business site ─────────────────────────────────── */
+.site { max-width: 1020px; margin: 0 auto; padding: 0 24px 120px; }
 
-/* ─── TRIGGER BUTTON ────────────────────── */
-#triggerBtn {
-  position: fixed; bottom: 28px; right: 28px; z-index: 1000;
-  width: 56px; height: 56px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #A38BFF);
-  border: none; cursor: pointer;
+.site-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 0; gap: 16px;
+}
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; letter-spacing: -0.01em; }
+.logo-mark {
+  width: 34px; height: 34px; border-radius: var(--radius);
+  background: var(--accent); color: #fff;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 20px var(--accent-glow);
-  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
+  font-size: 15px; font-weight: 800;
 }
-#triggerBtn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 6px 28px rgba(124,111,255,0.4);
+.nav-links { display: flex; gap: 22px; font-size: 14px; font-weight: 600; color: var(--ink2); }
+.nav-links span { cursor: default; }
+.nav-links span:hover { color: var(--ink); }
+
+.hero {
+  background: var(--hero-bg); color: var(--hero-ink);
+  border-radius: calc(var(--radius) * 2);
+  padding: 64px 56px; margin-top: 8px;
+  transition: background 0.35s;
 }
-#triggerBtn.open { background: var(--surface2); box-shadow: 0 0 0 1px var(--border), 0 4px 16px rgba(0,0,0,0.4); }
-.t-icon, .t-close {
-  position: absolute; font-size: 1.2rem; color: #fff;
-  transition: opacity 0.2s, transform 0.22s;
+.hero-kicker {
+  display: inline-block; font-size: 12px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  opacity: 0.75; margin-bottom: 16px;
 }
-.t-icon  { opacity: 1; transform: scale(1) rotate(0deg); }
-.t-close { opacity: 0; transform: scale(0.5) rotate(-90deg); }
-#triggerBtn.open .t-icon  { opacity: 0; transform: scale(0.5) rotate(90deg); }
-#triggerBtn.open .t-close { opacity: 1; transform: scale(1) rotate(0deg); }
-.t-close { color: var(--text2); }
+.hero h1 {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-spacing);
+  font-size: clamp(1.9rem, 4.4vw, 3rem);
+  line-height: 1.12; max-width: 560px; margin-bottom: 18px;
+}
+.hero p { font-size: 1.02rem; line-height: 1.7; max-width: 480px; opacity: 0.88; margin-bottom: 28px; }
+.hero-cta {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--panel); color: var(--ink);
+  border: none; border-radius: var(--radius);
+  padding: 13px 24px; font-size: 15px; font-weight: 700;
+  transition: transform 0.15s;
+}
+.hero-cta:hover { transform: translateY(-1px); }
+
+.services { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+.svc {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: calc(var(--radius) * 1.5); padding: 26px 24px;
+}
+.svc-icon {
+  width: 42px; height: 42px; border-radius: var(--radius);
+  background: var(--accent-soft);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px; margin-bottom: 16px;
+}
+.svc h3 { font-size: 16px; font-weight: 700; margin-bottom: 7px; }
+.svc p { font-size: 13.5px; color: var(--ink2); line-height: 1.65; }
+
+.strip {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: calc(var(--radius) * 1.5);
+  padding: 20px 26px; margin-top: 14px;
+  font-size: 14px; color: var(--ink2);
+}
+.strip b { color: var(--ink); font-weight: 700; }
+.strip .hint { display: flex; align-items: center; gap: 8px; color: var(--accent); font-weight: 700; }
+.strip .hint svg { flex-shrink: 0; }
+
+/* ── trigger button ─────────────────────────────────────── */
+#trigger {
+  position: fixed; bottom: 26px; right: 26px; z-index: 1000;
+  width: 58px; height: 58px; border-radius: 50%;
+  background: var(--accent); border: none; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.22);
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), background 0.35s;
+}
+#trigger:hover { transform: scale(1.07); }
+#trigger svg { position: absolute; transition: opacity 0.18s, transform 0.22s; }
+#trigger .ic-chat { opacity: 1; transform: scale(1) rotate(0); }
+#trigger .ic-x    { opacity: 0; transform: scale(0.5) rotate(-90deg); }
+#trigger.open .ic-chat { opacity: 0; transform: scale(0.5) rotate(90deg); }
+#trigger.open .ic-x    { opacity: 1; transform: scale(1) rotate(0); }
 
 .badge {
-  position: absolute; top: -3px; right: -3px;
-  width: 18px; height: 18px; border-radius: 50%;
-  background: #EF4444; border: 2px solid var(--bg);
-  font-size: 9px; font-weight: 700; color: #fff;
+  position: absolute; top: -2px; right: -2px;
+  min-width: 19px; height: 19px; border-radius: 100px;
+  background: #D6402B; border: 2px solid var(--bg);
+  font-size: 10px; font-weight: 800; color: #fff;
   display: flex; align-items: center; justify-content: center;
   transition: opacity 0.2s, transform 0.2s;
 }
-.badge.gone { opacity: 0; transform: scale(0); pointer-events: none; }
+.badge.gone { opacity: 0; transform: scale(0); }
 
-/* ─── WIDGET WINDOW ─────────────────────── */
-#widgetWin {
-  position: fixed; bottom: 96px; right: 28px;
-  width: 360px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-xl);
-  box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,111,255,0.08), inset 0 1px 0 rgba(255,255,255,0.04);
+/* ── widget window ──────────────────────────────────────── */
+#win {
+  position: fixed; bottom: 98px; right: 26px; z-index: 999;
+  width: 372px; max-height: min(600px, calc(100svh - 130px));
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 16px; overflow: hidden;
   display: flex; flex-direction: column;
-  overflow: hidden;
+  box-shadow: 0 28px 70px rgba(20, 20, 25, 0.25);
   transform-origin: bottom right;
-  transform: scale(0.86) translateY(18px);
-  opacity: 0; pointer-events: none;
-  transition: transform 0.32s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s ease;
-  z-index: 999;
-  max-height: calc(100svh - 120px);
+  transform: scale(0.9) translateY(14px); opacity: 0; pointer-events: none;
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s;
 }
-#widgetWin::before {
-  content: ''; position: absolute;
-  top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(to right, var(--accent), #C4B5FD);
-  z-index: 2;
-}
-#widgetWin.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+#win.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
 
-/* Header */
 .wh {
-  padding: 1rem 1.125rem 0.9rem;
-  display: flex; align-items: center; gap: 0.75rem;
-  background: var(--surface2);
-  border-bottom: 1px solid var(--border2);
-  flex-shrink: 0;
+  display: flex; align-items: center; gap: 12px;
+  padding: 15px 16px; background: var(--accent); color: #fff;
+  transition: background 0.35s;
 }
 .wh-av {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #A38BFF);
+  width: 38px; height: 38px; border-radius: 50%; position: relative;
+  background: rgba(255,255,255,0.18);
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.95rem; color: #fff; flex-shrink: 0; position: relative;
+  font-weight: 800; font-size: 14px; flex-shrink: 0;
 }
 .wh-dot {
-  position: absolute; bottom: 1px; right: 1px;
-  width: 9px; height: 9px; background: var(--green);
-  border-radius: 50%; border: 2px solid var(--surface2);
+  position: absolute; bottom: 0; right: 0;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #4ADE80; border: 2px solid var(--accent);
 }
-.wh-info { flex: 1; }
-.wh-info h3 { font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 1px; }
-.wh-info p {
-  font-size: 0.68rem; color: var(--green);
-  display: flex; align-items: center; gap: 5px; font-weight: 400;
-}
-.wh-info p::before {
-  content: ''; width: 5px; height: 5px;
-  background: var(--green); border-radius: 50%;
-  animation: onlinePulse 2s ease-in-out infinite;
-}
-@keyframes onlinePulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.wh-info { flex: 1; min-width: 0; }
+.wh-info h3 { font-size: 14.5px; font-weight: 700; }
+.wh-info p { font-size: 11.5px; opacity: 0.85; margin-top: 1px; }
 .wh-min {
-  width: 26px; height: 26px; border-radius: 7px;
-  background: none; border: 1px solid var(--border);
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  color: var(--text3); font-size: 0.72rem;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  background: rgba(255,255,255,0.12); border: none; color: #fff;
+  width: 30px; height: 30px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
 }
-.wh-min:hover { background: var(--surface3); border-color: rgba(255,255,255,0.1); color: var(--text2); }
+.wh-min:hover { background: rgba(255,255,255,0.22); }
 
-/* Messages */
 .wm {
-  flex: 1; overflow-y: auto; padding: 1rem 0.9rem;
-  display: flex; flex-direction: column; gap: 9px;
-  background: var(--bg);
-  min-height: 260px; max-height: 320px;
-  scrollbar-width: thin; scrollbar-color: var(--surface3) transparent;
+  flex: 1; overflow-y: auto; padding: 18px 16px 10px;
+  display: flex; flex-direction: column; gap: 12px;
+  background: var(--bg); min-height: 260px;
+  scrollbar-width: thin; scrollbar-color: var(--line) transparent;
 }
-.wm::-webkit-scrollbar { width: 3px; }
-.wm::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
-
-.msg { display: flex; flex-direction: column; max-width: 82%; animation: fadeUp 0.22s ease; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-.msg.bot  { align-self: flex-start; }
-.msg.user { align-self: flex-end; }
+.msg { max-width: 82%; display: flex; flex-direction: column; gap: 4px; }
+.msg.bot { align-self: flex-start; }
+.msg.user { align-self: flex-end; align-items: flex-end; }
 .msg-bub {
-  padding: 8px 12px; border-radius: 15px;
-  font-size: 0.835rem; line-height: 1.55; word-break: break-word;
+  padding: 10px 14px; font-size: 13.5px; line-height: 1.55;
+  border-radius: 14px; white-space: pre-line;
 }
-.msg.bot  .msg-bub { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 4px; }
-.msg.user .msg-bub { background: linear-gradient(135deg, var(--accent), #8B80FF); color: #fff; border-bottom-right-radius: 4px; }
-.msg-time { font-size: 0.61rem; color: var(--text3); margin-top: 3px; }
-.msg.user .msg-time { text-align: right; }
+.msg.bot .msg-bub {
+  background: var(--panel); border: 1px solid var(--line);
+  border-bottom-left-radius: 4px; color: var(--ink);
+}
+.msg.user .msg-bub {
+  background: var(--accent); color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.msg-time { font-size: 10.5px; color: var(--ink2); opacity: 0.75; padding: 0 4px; }
 
-/* Typing */
-.typing-wrap { align-self: flex-start; animation: fadeUp 0.2s ease; }
 .typing-bub {
-  display: flex; align-items: center; gap: 4px;
-  padding: 9px 13px;
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 15px; border-bottom-left-radius: 4px;
+  align-self: flex-start;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 14px; border-bottom-left-radius: 4px;
+  padding: 12px 15px; display: flex; gap: 4px;
 }
 .typing-bub span {
-  width: 5px; height: 5px; background: var(--text3);
-  border-radius: 50%; animation: typeBounce 1.3s ease-in-out infinite;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--ink2);
+  animation: bounce 1.2s infinite;
 }
-.typing-bub span:nth-child(2) { animation-delay: 0.18s; }
-.typing-bub span:nth-child(3) { animation-delay: 0.36s; }
-@keyframes typeBounce { 0%,60%,100%{transform:translateY(0);opacity:.35} 30%{transform:translateY(-5px);opacity:1} }
+.typing-bub span:nth-child(2) { animation-delay: 0.15s; }
+.typing-bub span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce { 0%,60%,100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-4px); opacity: 1; } }
 
-/* Quick replies */
-.wq {
-  display: flex; flex-wrap: wrap; gap: 6px;
-  padding: 0.6rem 0.9rem;
-  border-top: 1px solid var(--border2);
-  background: var(--surface);
-  flex-shrink: 0;
-}
+.wq { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 16px 10px; background: var(--bg); }
 .qr {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 100px; padding: 5px 11px;
-  font-size: 0.75rem; color: var(--text2); cursor: pointer;
-  font-family: inherit; white-space: nowrap;
-  transition: all 0.15s;
-}
-.qr:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-.qr:active { transform: scale(0.95); }
-
-/* Input */
-.wi {
-  padding: 0.7rem 0.875rem;
-  border-top: 1px solid var(--border);
-  display: flex; align-items: center; gap: 8px;
-  background: var(--surface);
-  flex-shrink: 0;
-}
-.wi-in {
-  flex: 1; background: var(--surface2);
-  border: 1px solid var(--border); border-radius: 100px;
-  padding: 8px 14px; font-size: 0.82rem;
-  color: var(--text); font-family: inherit; outline: none;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 100px; padding: 6px 13px;
+  font-size: 12px; font-weight: 600; color: var(--accent);
   transition: border-color 0.15s, background 0.15s;
 }
-.wi-in::placeholder { color: var(--text3); }
-.wi-in:focus { border-color: rgba(124,111,255,0.45); background: var(--surface3); }
-.wi-send {
-  width: 33px; height: 33px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #9B8EFF);
-  border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 0.78rem; flex-shrink: 0;
-  transition: transform 0.15s, opacity 0.15s;
-  box-shadow: 0 2px 10px var(--accent-glow);
-}
-.wi-send:hover { transform: scale(1.1); }
-.wi-send:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.qr:hover { border-color: var(--accent); background: var(--accent-soft); }
 
-/* ─── RESPONSIVE ────────────────────────── */
+.wi { display: flex; gap: 8px; padding: 12px 14px; background: var(--panel); border-top: 1px solid var(--line); }
+.wi-in {
+  flex: 1; background: var(--bg); border: 1px solid var(--line);
+  border-radius: 100px; padding: 10px 15px; font-size: 13.5px;
+  color: var(--ink); outline: none; transition: border-color 0.15s;
+}
+.wi-in::placeholder { color: var(--ink2); opacity: 0.7; }
+.wi-in:focus { border-color: var(--accent); }
+.wi-send {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--accent); border: none; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: transform 0.15s, opacity 0.15s, background 0.35s;
+}
+.wi-send:hover { transform: scale(1.08); }
+.wi-send:disabled { opacity: 0.4; transform: none; cursor: not-allowed; }
+
+.wfoot {
+  text-align: center; font-size: 10px; color: var(--ink2);
+  padding: 0 14px 9px; background: var(--panel);
+}
+
+/* ── responsive ─────────────────────────────────────────── */
+@media (max-width: 760px) {
+  .services { grid-template-columns: 1fr; }
+  .hero { padding: 40px 28px; }
+  .nav-links { display: none; }
+}
 @media (max-width: 540px) {
-  .page { padding: 3.5rem 1.25rem 9rem; }
-  h1 { font-size: 1.65rem; }
-  .grid-4 { grid-template-columns: 1fr; }
-  #widgetWin { width: calc(100vw - 2rem); right: 1rem; bottom: 88px; border-radius: var(--r-lg); }
-  #triggerBtn { bottom: 20px; right: 20px; }
+  .site { padding: 0 14px 130px; }
+  #win {
+    width: calc(100vw - 20px); right: 10px; bottom: 90px;
+    max-height: calc(100svh - 108px); border-radius: 14px;
+  }
+  #trigger { bottom: 18px; right: 18px; }
 }
 </style>
 </head>
 <body>
 
-<div class="glow-top"></div>
-
-<div class="page">
-  <div class="page-header">
-    <div class="tag"><i class="fa-solid fa-code"></i> Frontend Prototype</div>
-    <h1>Chat Widget<br>Demo</h1>
-    <p class="sub">An honest frontend prototype — no fake AI. Real widget interactions: open/close, quick replies, typing indicator, and smart mock responses. Hit the button in the corner.</p>
+<!-- demo control bar -->
+<div class="demobar">
+  <span class="demobar-label" id="barLabel"></span>
+  <div class="demobar-tabs" id="tabs"></div>
+  <div class="lang-tabs">
+    <button class="lang-tab" data-lang="en" onclick="switchLang('en')">EN</button>
+    <button class="lang-tab" data-lang="de" onclick="switchLang('de')">DE</button>
   </div>
+  <a href="https://github.com/niki-deone/chatai" target="_blank" rel="noopener">GitHub</a>
+</div>
 
-  <div class="grid-4">
-    <div class="feat">
-      <div class="feat-icon"><i class="fa-solid fa-toggle-on"></i></div>
-      <h3>Open / Close</h3>
-      <p>Spring animation on trigger. Icon morphs between chat and ✕ smoothly.</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon"><i class="fa-solid fa-bolt"></i></div>
-      <h3>Quick replies</h3>
-      <p>Pre-set buttons for common questions. Hidden after first interaction.</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon"><i class="fa-regular fa-circle-dot"></i></div>
-      <h3>Typing indicator</h3>
-      <p>Animated dots with randomised delay — feels natural, not robotic.</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon"><i class="fa-solid fa-mobile-screen"></i></div>
-      <h3>Responsive</h3>
-      <p>Full-width on mobile. Adapts layout on any screen size.</p>
-    </div>
-  </div>
+<!-- fake business site (rendered by JS) -->
+<div class="site">
+  <nav class="site-nav">
+    <div class="logo"><div class="logo-mark" id="logoMark"></div><span id="logoName"></span></div>
+    <div class="nav-links" id="navLinks"></div>
+  </nav>
 
-  <div class="divider"></div>
+  <header class="hero">
+    <span class="hero-kicker" id="heroKicker"></span>
+    <h1 id="heroTitle"></h1>
+    <p id="heroSub"></p>
+    <button class="hero-cta" onclick="openWidget()" id="heroCta"></button>
+  </header>
 
-  <div class="checklist">
-    <div class="checklist-title">What's included</div>
-    <div class="cl-items">
-      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Open / close with spring animation</div>
-      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Icon morphs between states</div>
-      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Quick replies (disappear after use)</div>
-      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Typing indicator with random delay</div>
-      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Keyword-based mock responses</div>
-      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Unread badge on trigger</div>
-      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Timestamps on every message</div>
-      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Enter to send, Escape to close</div>
-      <div class="cl-item"><i class="fa-solid fa-check ic yes"></i>Mobile responsive</div>
-      <div class="cl-item dim"><i class="fa-solid fa-xmark ic no"></i>No real AI — responses are demo only</div>
+  <div class="services" id="services"></div>
+
+  <div class="strip">
+    <div id="stripInfo"></div>
+    <div class="hint">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      <span id="stripHint"></span>
     </div>
   </div>
 </div>
 
-<!-- TRIGGER -->
-<button id="triggerBtn" onclick="toggleWidget()" aria-label="Toggle chat">
+<!-- trigger -->
+<button id="trigger" onclick="toggleWidget()" aria-label="Open chat">
   <div class="badge" id="badge">1</div>
-  <i class="fa-solid fa-comment-dots t-icon"></i>
-  <i class="fa-solid fa-xmark t-close"></i>
+  <svg class="ic-chat" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  <svg class="ic-x" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
 </button>
 
-<!-- WIDGET -->
-<div id="widgetWin" role="dialog" aria-label="Chat widget">
+<!-- widget -->
+<div id="win" role="dialog" aria-label="Chat">
   <div class="wh">
-    <div class="wh-av">
-      <i class="fa-solid fa-headset"></i>
-      <div class="wh-dot"></div>
-    </div>
-    <div class="wh-info">
-      <h3>Support</h3>
-      <p>Online · replies in seconds</p>
-    </div>
-    <button class="wh-min" onclick="toggleWidget()" aria-label="Minimise">
-      <i class="fa-solid fa-minus"></i>
+    <div class="wh-av"><span id="botAv"></span><div class="wh-dot"></div></div>
+    <div class="wh-info"><h3 id="botName"></h3><p id="botStatus"></p></div>
+    <button class="wh-min" onclick="toggleWidget()" aria-label="Minimize">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </button>
   </div>
-
-  <div class="wm" id="msgs">
-    <div class="msg bot">
-      <div class="msg-bub">Hi there 👋 How can I help you today?</div>
-      <div class="msg-time">Just now</div>
-    </div>
-  </div>
-
-  <div class="wq" id="qrWrap">
-    <button class="qr" onclick="sendQuick('What services do you offer?')">Services</button>
-    <button class="qr" onclick="sendQuick('How much does it cost?')">Pricing</button>
-    <button class="qr" onclick="sendQuick('How do I get started?')">Get started</button>
-    <button class="qr" onclick="sendQuick('Do you offer support?')">Support</button>
-  </div>
-
+  <div class="wm" id="msgs"></div>
+  <div class="wq" id="qrWrap"></div>
   <div class="wi">
-    <input class="wi-in" id="inp" type="text" placeholder="Type a message…" onkeydown="onKey(event)" autocomplete="off" maxlength="300">
+    <input class="wi-in" id="inp" type="text" autocomplete="off" maxlength="300">
     <button class="wi-send" id="sendBtn" onclick="sendMsg()" aria-label="Send">
-      <i class="fa-solid fa-paper-plane"></i>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
   </div>
+  <div class="wfoot" id="wFoot"></div>
 </div>
 
 <script>
-const RESP = [
-  { k:['service','offer','what do','what can'],  r:"We build custom websites, landing pages, web apps, and chat widgets like this one. Everything from scratch — no templates. Interested in something specific?" },
-  { k:['cost','price','pricing','how much','€','$','plan'], r:"A landing page starts from €150, a full website from €350, a custom web app from €500+. We always do a free estimate first. Want one?" },
-  { k:['start','begin','get started','hire','order'], r:"Easy — describe what you need or share your website URL, and we'll send a plan + price within 24 hours. No commitment required." },
-  { k:['support','help','issue','problem','bug','fix'], r:"All projects come with 30 days of free support after delivery. After that we have affordable monthly plans. What do you need help with?" },
-  { k:['time','long','deadline','fast','quick','delivery'], r:"Landing pages: 2–4 days. Full websites: 5–10 days. Web apps: 2–4 weeks. We give you an exact estimate before starting." },
-  { k:['hello','hi ','hey','morning','afternoon'], r:"Hey! Nice to meet you 😊 What are you looking to build?" },
-  { k:['thank','thanks','great','perfect','awesome','cool'], r:"Happy to help! Anything else you'd like to know?" },
-];
-const FALLBACK = "This is a demo — in a real setup I'd be trained on your business info and FAQs. Try asking about services, pricing, timeline, or support 👍";
+/* ── UI strings per language ───────────────────────────── */
+const UI = {
+  en: {
+    barLabel: 'One widget, three businesses — view demo as:',
+    status: 'Online · replies instantly',
+    placeholder: 'Type a message…',
+    hint: 'Try the chat in the corner',
+    foot: 'Demo · answers are predefined — the production version uses an AI model with your business data',
+  },
+  de: {
+    barLabel: 'Ein Widget, drei Unternehmen — Demo ansehen als:',
+    status: 'Online · antwortet sofort',
+    placeholder: 'Nachricht schreiben…',
+    hint: 'Probieren Sie den Chat unten rechts',
+    foot: 'Demo · Antworten sind vordefiniert — die Produktivversion nutzt ein KI-Modell mit Ihren Geschäftsdaten',
+  },
+};
 
-let busy = false, open = false;
+/* ── business personas per language ────────────────────── */
+const THEMES = {
+  handwerk: {
+    logoMark: 'B', botAv: 'B',
+    en: {
+      tab: 'Plumbing company',
+      logoName: 'Brandt Plumbing & Heating',
+      nav: ['Services', 'Projects', 'About', 'Contact'],
+      kicker: 'Master craftsmen since 1998',
+      title: 'Bathrooms, heating, emergencies — done fast and done right.',
+      sub: 'From a dripping tap to a full bathroom renovation. Fixed prices, clean job sites, and a crew that shows up on time.',
+      cta: 'Request a free consultation',
+      services: [
+        { icon: '🛁', h: 'Bathroom renovation', p: 'Full remodel from one source — planning, tiling, plumbing. Fixed price after inspection.' },
+        { icon: '🔥', h: 'Heating maintenance', p: 'Annual servicing, repair, and replacement. We support all major manufacturers.' },
+        { icon: '🚨', h: '24/7 emergency service', p: 'Burst pipe or heating failure? We are reachable around the clock.' },
+      ],
+      strip: '<b>Mon–Fri 7:30–17:00</b> · 12 Main Street, Marsberg · <b>05251 000000</b>',
+      botName: 'Brandt Assistant',
+      greeting: 'Hello! 👋 I\'m the digital assistant of Brandt Plumbing & Heating. How can I help — emergency, appointment, or a question about our services?',
+      quick: ['Emergency service', 'Bathroom renovation cost?', 'Book an appointment', 'Opening hours'],
+      resp: [
+        { k: ['emergency', 'burst', 'leak', 'flood', 'urgent', 'water damage'], r: 'For emergencies, call our 24/7 line: 05251 000000. If water is leaking: shut off the main valve — it\'s usually in the basement near the water meter. A technician will get back to you within 30 minutes.' },
+        { k: ['bathroom', 'renovation', 'remodel', 'tile', 'shower'], r: 'A bathroom renovation typically costs between €12,000 and €25,000 depending on size and fittings. We inspect for free and give a fixed-price quote. Should I note down an inspection appointment?' },
+        { k: ['cost', 'price', 'how much', 'expensive', 'quote'], r: 'Small repairs are billed by time and call-out fee; larger projects always get a fixed price after a free inspection. What do you have in mind?' },
+        { k: ['appointment', 'book', 'schedule', 'when can'], r: 'Gladly! Tell me briefly what you need and your phone number — we\'ll call back today and find a slot. We\'re currently booked about 1–2 weeks ahead; emergencies excepted, of course.' },
+        { k: ['hours', 'open', 'reach', 'available'], r: 'Our office is staffed Mon–Fri from 7:30 to 17:00. The emergency line is available around the clock — weekends and holidays included.' },
+        { k: ['heating', 'boiler', 'maintenance', 'radiator'], r: 'We service and repair all common heating systems. Annual maintenance starts at €120 and prevents expensive breakdowns. Shall I set up a maintenance visit?' },
+        { k: ['hello', 'hi', 'hey', 'good morning', 'good afternoon'], r: 'Hello! Great to have you here. What can we help you with?' },
+        { k: ['thank', 'great', 'perfect', 'awesome'], r: 'Happy to help! If anything else comes up — we\'re one message away. 👍' },
+      ],
+      fallback: 'That\'s best answered by our office directly — leave your number, or call us: 05251 000000. You can also ask me about prices, appointments, or the emergency service.',
+    },
+    de: {
+      tab: 'Sanitär-Betrieb',
+      logoName: 'Brandt Sanitär & Heizung',
+      nav: ['Leistungen', 'Referenzen', 'Über uns', 'Kontakt'],
+      kicker: 'Meisterbetrieb seit 1998',
+      title: 'Bad, Heizung, Notdienst — schnell und sauber erledigt.',
+      sub: 'Vom tropfenden Wasserhahn bis zur kompletten Badsanierung. Festpreise, saubere Baustellen und ein Team, das pünktlich kommt.',
+      cta: 'Kostenlose Beratung anfragen',
+      services: [
+        { icon: '🛁', h: 'Badsanierung', p: 'Komplettumbau aus einer Hand — Planung, Fliesen, Sanitär. Festpreis nach Besichtigung.' },
+        { icon: '🔥', h: 'Heizungswartung', p: 'Jährliche Wartung, Reparatur und Austausch. Wir betreuen alle gängigen Hersteller.' },
+        { icon: '🚨', h: '24/7 Notdienst', p: 'Rohrbruch oder Heizungsausfall? Wir sind rund um die Uhr für Sie erreichbar.' },
+      ],
+      strip: '<b>Mo–Fr 7:30–17:00</b> · Musterstraße 12, 34431 Marsberg · <b>05251 000000</b>',
+      botName: 'Brandt Assistent',
+      greeting: 'Guten Tag! 👋 Ich bin der digitale Assistent von Brandt Sanitär & Heizung. Wie kann ich helfen — Notfall, Termin oder eine Frage zu unseren Leistungen?',
+      quick: ['Notdienst erreichen', 'Was kostet eine Badsanierung?', 'Termin vereinbaren', 'Öffnungszeiten'],
+      resp: [
+        { k: ['notdienst', 'notfall', 'rohrbruch', 'wasserschaden', 'dringend'], r: 'Bei einem Notfall erreichen Sie unseren 24/7-Notdienst unter 05251 000000. Bei Wasserschaden: Haupthahn zudrehen — er sitzt meist im Keller beim Wasserzähler. Ein Monteur meldet sich innerhalb von 30 Minuten.' },
+        { k: ['bad', 'sanierung', 'umbau', 'fliesen', 'dusche'], r: 'Eine Badsanierung kostet je nach Größe und Ausstattung meist zwischen 12.000 und 25.000 €. Wir besichtigen kostenlos und machen ein Festpreisangebot. Soll ich einen Besichtigungstermin notieren?' },
+        { k: ['kosten', 'preis', 'was kostet', 'teuer', 'angebot'], r: 'Kleinreparaturen rechnen wir nach Aufwand ab (Anfahrt + Arbeitszeit), größere Projekte immer zum Festpreis nach kostenloser Besichtigung. Worum geht es bei Ihnen?' },
+        { k: ['termin', 'vereinbaren', 'wann können'], r: 'Gern! Nennen Sie mir kurz Ihr Anliegen und Ihre Telefonnummer — wir rufen noch heute zurück und finden einen Termin. Aktuell sind wir ca. 1–2 Wochen im Voraus ausgebucht, Notfälle natürlich ausgenommen.' },
+        { k: ['öffnungszeit', 'erreichbar', 'wann habt', 'wann sind'], r: 'Unser Büro ist Mo–Fr von 7:30 bis 17:00 Uhr besetzt. Der Notdienst ist rund um die Uhr erreichbar — auch am Wochenende und an Feiertagen.' },
+        { k: ['heizung', 'wartung', 'therme', 'brenner'], r: 'Wir warten und reparieren alle gängigen Heizungsanlagen. Eine jährliche Wartung kostet ab 120 € und beugt teuren Ausfällen vor. Soll ich einen Wartungstermin anstoßen?' },
+        { k: ['hallo', 'guten tag', 'moin', 'hi'], r: 'Hallo! Schön, dass Sie da sind. Womit können wir Ihnen helfen?' },
+        { k: ['danke', 'super', 'perfekt', 'prima'], r: 'Sehr gern! Wenn noch etwas ist — wir sind nur eine Nachricht entfernt. 👍' },
+      ],
+      fallback: 'Das leite ich am besten direkt an unser Büro weiter. Hinterlassen Sie Ihre Nummer, oder rufen Sie uns an: 05251 000000. Sie können mich auch nach Preisen, Terminen oder dem Notdienst fragen.',
+    },
+  },
 
-function now() { return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
-function scroll() { const el=document.getElementById('msgs'); el.scrollTop=el.scrollHeight; }
+  praxis: {
+    logoMark: 'W', botAv: 'W',
+    en: {
+      tab: 'Dental practice',
+      logoName: 'Dr. Weber Dental Practice',
+      nav: ['Treatments', 'Team', 'Practice', 'Contact'],
+      kicker: 'Modern dentistry in Marsberg',
+      title: 'Healthy teeth, relaxed patients.',
+      sub: 'From prophylaxis to implants — modern technology, plenty of time for you, and special experience with anxious patients.',
+      cta: 'Request an appointment',
+      services: [
+        { icon: '✨', h: 'Prophylaxis', p: 'Professional cleaning and prevention — the best insurance for your teeth.' },
+        { icon: '🦷', h: 'Implants', p: 'Fixed dentures with 3D planning. Consultation and cost plan in the first session.' },
+        { icon: '💙', h: 'Anxious patients', p: 'Gentle treatment, thorough explanations, and sedation on request.' },
+      ],
+      strip: '<b>Mon–Thu 8–18, Fri 8–14</b> · 45 High Street, Marsberg · <b>05251 111111</b>',
+      botName: 'Practice Assistant',
+      greeting: 'Welcome to Dr. Weber\'s practice! 😊 I can help with appointments, treatment questions, or dental emergencies. What can I do for you?',
+      quick: ['Book an appointment', 'Acute pain', 'Does insurance cover it?', 'Opening hours'],
+      resp: [
+        { k: ['pain', 'emergency', 'acute', 'ache', 'swollen', 'hurt'], r: 'For acute pain we keep emergency slots open every day: please call us directly at 05251 111111 — you\'ll get an appointment today. Outside office hours, the dental emergency service can help: 01805 986700.' },
+        { k: ['appointment', 'book', 'schedule', 'when'], r: 'Gladly! For an appointment, please tell me your name, phone number, and whether it\'s about prevention, pain, or a consultation. Our team will call back within one working day.' },
+        { k: ['insurance', 'cover', 'cost', 'price', 'pay', 'private'], r: 'We treat both publicly and privately insured patients. Prophylaxis and many treatments are covered or subsidized — for everything else you get a transparent cost plan up front, no surprises.' },
+        { k: ['hours', 'open', 'office'], r: 'Our office hours: Mon–Thu 8:00–18:00, Fri 8:00–14:00. Appointments by arrangement, emergencies daily.' },
+        { k: ['anxious', 'anxiety', 'afraid', 'scared', 'fear', 'needle'], r: 'You\'re in the right place: we take extra time, explain every step beforehand, and offer sedation on request. Many of our patients arrived anxious — and now come in relaxed for their check-ups.' },
+        { k: ['cleaning', 'prophylaxis', 'whitening', 'bleaching'], r: 'A professional cleaning takes about 60 minutes and costs €89. Many insurers subsidize it — ask your insurer or us. Whitening is available after a prior check-up.' },
+        { k: ['hello', 'hi', 'hey', 'good morning'], r: 'Hello! Great to have you here. How can I help?' },
+        { k: ['thank', 'great', 'perfect'], r: 'You\'re welcome — see you at the practice! 😊' },
+      ],
+      fallback: 'Our practice team can answer that best in person: 05251 111111. I\'m happy to help with appointments, office hours, costs, or emergencies.',
+    },
+    de: {
+      tab: 'Zahnarztpraxis',
+      logoName: 'Zahnarztpraxis Dr. Weber',
+      nav: ['Leistungen', 'Team', 'Praxis', 'Kontakt'],
+      kicker: 'Moderne Zahnmedizin in Marsberg',
+      title: 'Gesunde Zähne, entspannte Patienten.',
+      sub: 'Von der Prophylaxe bis zum Implantat — mit moderner Technik, viel Zeit für Sie und besonderer Erfahrung mit Angstpatienten.',
+      cta: 'Termin anfragen',
+      services: [
+        { icon: '✨', h: 'Prophylaxe', p: 'Professionelle Zahnreinigung und Vorsorge — die beste Versicherung für Ihre Zähne.' },
+        { icon: '🦷', h: 'Implantate', p: 'Fester Zahnersatz mit 3D-Planung. Beratung und Kostenplan im ersten Gespräch.' },
+        { icon: '💙', h: 'Angstpatienten', p: 'Behutsame Behandlung, ausführliche Aufklärung und auf Wunsch Sedierung.' },
+      ],
+      strip: '<b>Mo–Do 8–18, Fr 8–14</b> · Hauptstraße 45, 34431 Marsberg · <b>05251 111111</b>',
+      botName: 'Praxis-Assistent',
+      greeting: 'Herzlich willkommen in der Praxis Dr. Weber! 😊 Ich helfe bei Terminen, Fragen zur Behandlung oder im Schmerzfall. Was kann ich für Sie tun?',
+      quick: ['Termin buchen', 'Akute Schmerzen', 'Übernimmt das die Kasse?', 'Öffnungszeiten'],
+      resp: [
+        { k: ['schmerz', 'notfall', 'akut', 'weh', 'geschwollen'], r: 'Bei akuten Schmerzen halten wir täglich Notfallzeiten frei: rufen Sie bitte direkt an unter 05251 111111 — Sie bekommen noch heute einen Termin. Außerhalb der Sprechzeiten hilft der zahnärztliche Notdienst unter 01805 986700.' },
+        { k: ['termin', 'buchen', 'vereinbaren', 'wann'], r: 'Gern! Für einen Termin nennen Sie mir bitte Ihren Namen, Telefonnummer und ob es um Vorsorge, Schmerzen oder eine Beratung geht. Unser Team ruft innerhalb eines Werktags zurück.' },
+        { k: ['kasse', 'versicher', 'privat', 'kosten', 'zuzahlung', 'preis'], r: 'Wir behandeln gesetzlich und privat Versicherte. Prophylaxe und viele Leistungen sind Kassenleistung oder werden bezuschusst — bei allem anderen bekommen Sie vorab einen transparenten Kostenplan, ohne Überraschungen.' },
+        { k: ['öffnungszeit', 'geöffnet', 'sprechzeit'], r: 'Unsere Sprechzeiten: Mo–Do 8:00–18:00 Uhr, Fr 8:00–14:00 Uhr. Termine nach Vereinbarung, Notfälle täglich.' },
+        { k: ['angst', 'panik', 'trauen', 'spritze'], r: 'Damit sind Sie bei uns richtig: Wir nehmen uns besonders viel Zeit, erklären jeden Schritt vorher und behandeln auf Wunsch mit Sedierung. Viele unserer Patienten kamen als Angstpatienten — und kommen heute entspannt zur Vorsorge.' },
+        { k: ['reinigung', 'prophylaxe', 'bleaching', 'weiß'], r: 'Die professionelle Zahnreinigung dauert ca. 60 Minuten und kostet 89 €. Viele Krankenkassen bezuschussen sie — fragen Sie Ihre Kasse oder uns. Bleaching bieten wir nach vorheriger Kontrolle an.' },
+        { k: ['hallo', 'guten tag', 'moin', 'hi'], r: 'Guten Tag! Schön, dass Sie da sind. Wie kann ich helfen?' },
+        { k: ['danke', 'super', 'perfekt'], r: 'Sehr gern — bis bald in der Praxis! 😊' },
+      ],
+      fallback: 'Diese Frage beantwortet Ihnen unser Praxisteam am besten persönlich: 05251 111111. Ich helfe gern bei Terminen, Sprechzeiten, Kosten oder im Schmerzfall.',
+    },
+  },
+
+  ristorante: {
+    logoMark: 'V', botAv: 'V',
+    en: {
+      tab: 'Restaurant',
+      logoName: 'Trattoria Bella Vista',
+      nav: ['Menu', 'Reservations', 'Gallery', 'Directions'],
+      kicker: 'Cucina italiana · dal 2009',
+      title: 'An evening in Italy — in the heart of Sauerland.',
+      sub: 'Stone-oven pizza, handmade pasta, and a wine list worth the trip. Buon appetito!',
+      cta: 'Reserve a table',
+      services: [
+        { icon: '🍕', h: 'Stone-oven pizza', p: 'Neapolitan dough, fermented for 48 hours, baked at 450 degrees.' },
+        { icon: '🍝', h: 'Pasta fatta a mano', p: 'Made fresh by hand every day — try the tagliatelle al tartufo.' },
+        { icon: '🍷', h: 'Vini italiani', p: 'Over 60 wines from every region of Italy, by the glass and the bottle.' },
+      ],
+      strip: '<b>Tue–Sun from 5 pm</b> · 3 Market Square, Marsberg · <b>05251 222222</b> · closed Mondays',
+      botName: 'Bella Vista',
+      greeting: 'Benvenuti! 🇮🇹 I\'m the assistant of Trattoria Bella Vista. Table reservations, menu, opening hours — just ask!',
+      quick: ['Reserve a table', 'Menu', 'Do you deliver?', 'Opening hours'],
+      resp: [
+        { k: ['reserv', 'table', 'book', 'tonight', 'saturday'], r: 'Molto bene! For a reservation I need: date, time, number of guests, and your name. On weekends we recommend booking 2–3 days ahead. Or call us directly: 05251 222222.' },
+        { k: ['menu', 'pizza', 'pasta', 'food', 'dish', 'eat'], r: 'Our menu: stone-oven pizza (€9–15), handmade pasta (€11–18), weekly specials, and dolci. House recommendations: tagliatelle al tartufo and the pizza diavola. 🍕' },
+        { k: ['deliver', 'takeaway', 'take away', 'pickup', 'order'], r: 'We don\'t deliver — but everything is available for pickup! Just call 05251 222222 and it\'s ready in 20–25 minutes. Though honestly, pizza tastes best fresh from our oven. 😉' },
+        { k: ['hours', 'open', 'closed', 'when'], r: 'We\'re open Tue–Sun from 5 pm; the kitchen closes at 9:30 pm. Monday is our day off — that\'s when we\'re at the wholesale market.' },
+        { k: ['vegan', 'vegetarian', 'allerg', 'gluten', 'lactose'], r: 'No problem! We have vegetarian and vegan dishes, gluten-free pizza dough for a small extra charge, and we know our ingredients well. Mention it when reserving and the kitchen will be prepared.' },
+        { k: ['wine', 'vino', 'drink', 'aperitif'], r: 'Our wine list has over 60 Italian wines — from the house wine (0.2l from €5.50) to Barolo. Ask for a pairing recommendation at the restaurant; that\'s our favorite part. 🍷' },
+        { k: ['hello', 'hi', 'ciao', 'buona', 'hey'], r: 'Ciao! Great to have you here. Table, menu, or another question?' },
+        { k: ['thank', 'grazie', 'great', 'perfect'], r: 'Prego, with pleasure! A presto — see you at Bella Vista! 🇮🇹' },
+      ],
+      fallback: 'Our team knows that best by phone: 05251 222222. I\'m happy to help with reservations, the menu, or opening hours!',
+    },
+    de: {
+      tab: 'Restaurant',
+      logoName: 'Trattoria Bella Vista',
+      nav: ['Speisekarte', 'Reservierung', 'Galerie', 'Anfahrt'],
+      kicker: 'Cucina italiana · dal 2009',
+      title: 'Ein Abend wie in Italien — mitten im Sauerland.',
+      sub: 'Pizza aus dem Steinofen, hausgemachte Pasta und eine Weinkarte, für die sich der Weg lohnt. Buon appetito!',
+      cta: 'Tisch reservieren',
+      services: [
+        { icon: '🍕', h: 'Steinofen-Pizza', p: 'Neapolitanischer Teig, 48 Stunden gereift, bei 450 Grad gebacken.' },
+        { icon: '🍝', h: 'Pasta fatta a mano', p: 'Täglich frisch von Hand gemacht — probieren Sie die Tagliatelle al Tartufo.' },
+        { icon: '🍷', h: 'Vini italiani', p: 'Über 60 Positionen aus allen Regionen Italiens, offen und in der Flasche.' },
+      ],
+      strip: '<b>Di–So ab 17:00</b> · Am Markt 3, 34431 Marsberg · <b>05251 222222</b> · Montag Ruhetag',
+      botName: 'Bella Vista',
+      greeting: 'Benvenuti! 🇮🇹 Ich bin der Assistent der Trattoria Bella Vista. Tisch reservieren, Speisekarte, Öffnungszeiten — fragen Sie mich!',
+      quick: ['Tisch reservieren', 'Speisekarte', 'Liefert ihr?', 'Wann habt ihr auf?'],
+      resp: [
+        { k: ['reservier', 'tisch', 'platz', 'heute abend', 'samstag'], r: 'Molto bene! Für eine Reservierung brauche ich: Datum, Uhrzeit, Personenzahl und Ihren Namen. Am Wochenende empfehlen wir 2–3 Tage Vorlauf. Alternativ direkt anrufen: 05251 222222.' },
+        { k: ['karte', 'speise', 'menü', 'pizza', 'pasta', 'essen', 'gericht'], r: 'Unsere Karte: Steinofen-Pizza (9–15 €), hausgemachte Pasta (11–18 €), wechselnde Wochengerichte und Dolci. Empfehlung des Hauses: Tagliatelle al Tartufo und die Pizza Diavola. 🍕' },
+        { k: ['liefer', 'abhol', 'mitnehmen', 'to go', 'bestellen'], r: 'Wir liefern nicht — aber alle Gerichte gibt es zum Abholen! Einfach anrufen (05251 222222), in 20–25 Minuten ist es fertig. Pizza schmeckt bei uns aber ehrlich gesagt am besten frisch aus dem Ofen. 😉' },
+        { k: ['öffnungszeit', 'geöffnet', 'wann', 'auf', 'ruhetag'], r: 'Wir haben Di–So ab 17:00 Uhr geöffnet, die Küche schließt um 21:30. Montag ist Ruhetag — da sind wir auf dem Großmarkt.' },
+        { k: ['vegan', 'vegetarisch', 'allergi', 'gluten', 'laktose'], r: 'Kein Problem! Wir haben vegetarische und vegane Gerichte, glutenfreien Pizzateig gegen kleinen Aufpreis und kennen unsere Zutaten genau. Sagen Sie bei der Reservierung kurz Bescheid, dann bereitet sich die Küche vor.' },
+        { k: ['wein', 'vino', 'trinken', 'aperitif'], r: 'Unsere Weinkarte umfasst über 60 italienische Weine — vom Hauswein (0,2l ab 5,50 €) bis zum Barolo. Fragen Sie im Restaurant nach einer Empfehlung zum Gericht, das machen wir am liebsten. 🍷' },
+        { k: ['hallo', 'guten tag', 'ciao', 'buona', 'hi'], r: 'Ciao! Schön, dass Sie da sind. Tisch, Karte oder eine andere Frage?' },
+        { k: ['danke', 'grazie', 'super', 'perfekt'], r: 'Prego, sehr gern! A presto — bis bald in der Bella Vista! 🇮🇹' },
+      ],
+      fallback: 'Das weiß unser Team am Telefon am besten: 05251 222222. Ich helfe gern bei Reservierungen, der Speisekarte oder den Öffnungszeiten!',
+    },
+  },
+};
+
+/* ── state ─────────────────────────────────────────────── */
+let currentTheme = 'handwerk';
+let currentLang = 'en';
+let open = false, busy = false;
+
+const $ = id => document.getElementById(id);
+const now = () => new Date().toLocaleTimeString(currentLang === 'de' ? 'de-DE' : 'en-GB', { hour: '2-digit', minute: '2-digit' });
+const T = () => THEMES[currentTheme][currentLang];
+
+/* ── render everything for current theme + lang ────────── */
+function render() {
+  const theme = THEMES[currentTheme];
+  const t = T();
+  const ui = UI[currentLang];
+
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  document.documentElement.setAttribute('lang', currentLang);
+
+  $('barLabel').textContent = ui.barLabel;
+  $('tabs').innerHTML = Object.keys(THEMES).map(id =>
+    `<button class="demo-tab${id === currentTheme ? ' active' : ''}" data-id="${id}" onclick="switchTheme('${id}')">${THEMES[id][currentLang].tab}</button>`).join('');
+  document.querySelectorAll('.lang-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.lang === currentLang));
+
+  $('logoMark').textContent = theme.logoMark;
+  $('logoName').textContent = t.logoName;
+  $('navLinks').innerHTML = t.nav.map(n => `<span>${n}</span>`).join('');
+  $('heroKicker').textContent = t.kicker;
+  $('heroTitle').textContent = t.title;
+  $('heroSub').textContent = t.sub;
+  $('heroCta').textContent = t.cta;
+  $('services').innerHTML = t.services.map(s =>
+    `<div class="svc"><div class="svc-icon">${s.icon}</div><h3>${s.h}</h3><p>${s.p}</p></div>`).join('');
+  $('stripInfo').innerHTML = t.strip;
+  $('stripHint').textContent = ui.hint;
+
+  $('botName').textContent = t.botName;
+  $('botAv').textContent = theme.botAv;
+  $('botStatus').textContent = ui.status;
+  $('inp').placeholder = ui.placeholder;
+  $('wFoot').textContent = ui.foot;
+}
+
+/* ── chat ──────────────────────────────────────────────── */
+function resetChat() {
+  const t = T();
+  $('msgs').innerHTML = '';
+  addMsg(t.greeting, 'bot');
+  $('qrWrap').style.display = 'flex';
+  $('qrWrap').innerHTML = t.quick.map(q =>
+    `<button class="qr" onclick="sendQuick(this.textContent)">${q}</button>`).join('');
+}
 
 function addMsg(text, role) {
-  const w=document.getElementById('msgs');
-  const d=document.createElement('div'); d.className=`msg ${role}`;
-  d.innerHTML=`<div class="msg-bub">${text}</div><div class="msg-time">${now()}</div>`;
-  w.appendChild(d); scroll();
+  const d = document.createElement('div');
+  d.className = `msg ${role}`;
+  const bub = document.createElement('div');
+  bub.className = 'msg-bub';
+  bub.textContent = text;
+  const time = document.createElement('div');
+  time.className = 'msg-time';
+  time.textContent = now();
+  d.append(bub, time);
+  $('msgs').appendChild(d);
+  $('msgs').scrollTop = $('msgs').scrollHeight;
 }
 
 function showTyping() {
-  const w=document.getElementById('msgs');
-  const d=document.createElement('div'); d.className='typing-wrap'; d.id='typer';
-  d.innerHTML='<div class="typing-bub"><span></span><span></span><span></span></div>';
-  w.appendChild(d); scroll();
+  const d = document.createElement('div');
+  d.id = 'typer';
+  d.innerHTML = '<div class="typing-bub"><span></span><span></span><span></span></div>';
+  $('msgs').appendChild(d);
+  $('msgs').scrollTop = $('msgs').scrollHeight;
 }
-function hideTyping() { document.getElementById('typer')?.remove(); }
+const hideTyping = () => $('typer')?.remove();
 
-function getReply(t) {
-  const low=t.toLowerCase();
-  for(const r of RESP) if(r.k.some(k=>low.includes(k))) return r.r;
-  return FALLBACK;
+function getReply(text) {
+  const low = text.toLowerCase();
+  const t = T();
+  for (const r of t.resp) if (r.k.some(k => low.includes(k))) return r.r;
+  return t.fallback;
 }
 
 function deliver(userText) {
-  busy=true; document.getElementById('sendBtn').disabled=true;
-  setTimeout(()=>{
+  busy = true;
+  $('sendBtn').disabled = true;
+  setTimeout(() => {
     showTyping();
-    setTimeout(()=>{
-      hideTyping(); addMsg(getReply(userText),'bot');
-      busy=false; document.getElementById('sendBtn').disabled=false;
-      document.getElementById('inp').focus();
-    }, 850+Math.random()*600);
-  }, 600+Math.random()*500);
+    setTimeout(() => {
+      hideTyping();
+      addMsg(getReply(userText), 'bot');
+      busy = false;
+      $('sendBtn').disabled = false;
+      $('inp').focus();
+    }, 800 + Math.random() * 600);
+  }, 450 + Math.random() * 400);
 }
 
 function sendMsg() {
-  if(busy) return;
-  const inp=document.getElementById('inp'); const t=inp.value.trim(); if(!t) return;
-  inp.value=''; hideQR(); addMsg(t,'user'); deliver(t);
+  if (busy) return;
+  const t = $('inp').value.trim();
+  if (!t) return;
+  $('inp').value = '';
+  $('qrWrap').style.display = 'none';
+  addMsg(t, 'user');
+  deliver(t);
 }
-function sendQuick(t) { if(busy) return; hideQR(); addMsg(t,'user'); deliver(t); }
-function hideQR() { document.getElementById('qrWrap').style.display='none'; }
-function onKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} }
+function sendQuick(t) {
+  if (busy) return;
+  $('qrWrap').style.display = 'none';
+  addMsg(t, 'user');
+  deliver(t);
+}
 
+/* ── widget open/close ─────────────────────────────────── */
 function toggleWidget() {
-  open=!open;
-  document.getElementById('triggerBtn').classList.toggle('open',open);
-  document.getElementById('widgetWin').classList.toggle('open',open);
-  document.getElementById('badge').classList.add('gone');
-  if(open) setTimeout(()=>document.getElementById('inp').focus(),350);
+  open = !open;
+  $('trigger').classList.toggle('open', open);
+  $('win').classList.toggle('open', open);
+  $('badge').classList.add('gone');
+  if (open) setTimeout(() => $('inp').focus(), 320);
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&open)toggleWidget();});
+function openWidget() { if (!open) toggleWidget(); }
+
+/* ── switching ─────────────────────────────────────────── */
+function switchTheme(id) {
+  if (id === currentTheme) return;
+  currentTheme = id;
+  render();
+  resetChat();
+}
+function switchLang(lang) {
+  if (lang === currentLang) return;
+  currentLang = lang;
+  render();
+  resetChat();
+}
+
+/* ── init ──────────────────────────────────────────────── */
+$('inp').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && open) toggleWidget(); });
+
+render();
+resetChat();
 </script>
 </body>
 </html>
