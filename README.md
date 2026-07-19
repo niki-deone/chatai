@@ -18,9 +18,13 @@ A chat widget sells best in context. Instead of a feature checklist, the demo sh
 - Responsive down to mobile, `prefers-reduced-motion` respected
 - Zero dependencies: one HTML file, vanilla JS, no icon fonts (inline SVG)
 
-## Honesty note
+## Live AI mode
 
-Demo responses are predefined. The production version connects the same frontend to an AI model (e.g. Claude API via a serverless endpoint) loaded with the business's real FAQ and data.
+The widget talks to a real AI model (Claude Haiku) through a Vercel serverless function (`api/chat.js`). The API key lives only in a server-side environment variable - never in the client bundle. Each business persona is a server-held system prompt with the business's actual data; the server validates every request (theme, language, message count, length) and the demo is capped at 10 AI messages per session.
+
+If the endpoint is not configured or credits run out, the widget silently falls back to predefined keyword answers - the demo never breaks.
+
+To deploy your own: set `ANTHROPIC_API_KEY` in Vercel project settings (Environment Variables) and redeploy.
 
 ## Deploy
 
